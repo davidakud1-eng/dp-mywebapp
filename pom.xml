@@ -31,6 +31,10 @@
         <!-- Java -->
         <maven.compiler.release>17</maven.compiler.release>
 
+        <!-- SonarQube Cloud -->
+        <sonar.organization>davidakud1-eng</sonar.organization>
+        <sonar.projectKey>davidakud1-eng_dp-mywebapp</sonar.projectKey>
+
         <!-- Dependency Versions -->
         <junit.version>5.11.4</junit.version>
 

@@ -7,6 +7,14 @@ pipeline {
                 sh 'mvn clean verify'
             }
         }
+
+        stage('SonarCloud Analysis') {
+            steps {
+                withSonarQubeEnv('DP-SonarCloud') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
     }
 
     post {
