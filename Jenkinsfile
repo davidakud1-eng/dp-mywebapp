@@ -12,6 +12,13 @@ pipeline {
     post {
         always {
             junit 'target/surefire-reports/*.xml'
+
+            recordCoverage(
+                tools: [[
+                    parser: 'JACOCO',
+                    pattern: 'target/site/jacoco/jacoco.xml'
+                ]]
+            )
         }
     }
 }
