@@ -2,10 +2,16 @@ pipeline {
     agent { label 'build-agent' }
 
     stages {
-        stage('Connectivity Test') {
+        stage('Build and Test') {
             steps {
-                echo 'GitHub to Jenkins checkout is working.'
+                sh 'mvn clean verify'
             }
+        }
+    }
+
+    post {
+        always {
+            junit 'target/surefire-reports/*.xml'
         }
     }
 }
