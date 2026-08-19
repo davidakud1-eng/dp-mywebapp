@@ -7,25 +7,46 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- ================================================================== -->
+    <!-- DP MyWebApp Project                                                -->
+    <!-- ================================================================== -->
+
     <groupId>com.dp</groupId>
     <artifactId>dp-mywebapp</artifactId>
     <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <name>DP MyWebApp</name>
-    <description>Java web application for the DP DevSecOps platform</description>
+    <description>
+        Java web application for the DP production-grade DevSecOps CI/CD platform.
+    </description>
+
+    <!-- ================================================================== -->
+    <!-- Build Properties                                                   -->
+    <!-- ================================================================== -->
 
     <properties>
-        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <!-- Java -->
+        <maven.compiler.release>17</maven.compiler.release>
+
+        <!-- Dependency Versions -->
         <junit.version>5.11.4</junit.version>
+
+        <!-- Maven Plugin Versions -->
+        <maven.compiler.version>3.13.0</maven.compiler.version>
         <surefire.version>3.5.2</surefire.version>
         <jacoco.version>0.8.12</jacoco.version>
     </properties>
 
+    <!-- ================================================================== -->
+    <!-- Dependencies                                                       -->
+    <!-- ================================================================== -->
+
     <dependencies>
 
-        <!-- Unit Testing -->
+        <!-- JUnit 5 -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -35,17 +56,40 @@
 
     </dependencies>
 
+    <!-- ================================================================== -->
+    <!-- Build Configuration                                                -->
+    <!-- ================================================================== -->
+
     <build>
         <plugins>
 
-            <!-- Execute JUnit 5 Tests -->
+            <!-- ========================================================== -->
+            <!-- Java Compilation                                          -->
+            <!-- ========================================================== -->
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.version}</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+
+            <!-- ========================================================== -->
+            <!-- Unit Testing - JUnit 5                                    -->
+            <!-- ========================================================== -->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
             </plugin>
 
-            <!-- JaCoCo Code Coverage -->
+            <!-- ========================================================== -->
+            <!-- Code Coverage - JaCoCo                                    -->
+            <!-- ========================================================== -->
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -61,9 +105,9 @@
                         </goals>
                     </execution>
 
-                    <!-- Generate coverage report after tests -->
+                    <!-- Generate coverage report during verify -->
                     <execution>
-                        <id>report</id>
+                        <id>jacoco-report</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
