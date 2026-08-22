@@ -55,7 +55,9 @@ pipeline {
         stage('Trivy Image Scan') {
             steps {
                 sh '''
-                    trivy image \
+                    mkdir -p "$HOME/trivy-tmp"
+
+                    TMPDIR="$HOME/trivy-tmp" trivy image \
                         --severity HIGH,CRITICAL \
                         --exit-code 1 \
                         --ignore-unfixed \

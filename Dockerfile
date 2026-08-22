@@ -2,15 +2,15 @@
 # DP MyWebApp Runtime Image
 # ============================================================================
 
-FROM eclipse-temurin:17-jre
+FROM gcr.io/distroless/java17-debian13:nonroot
 
 LABEL org.opencontainers.image.title="DP MyWebApp"
 LABEL org.opencontainers.image.description="DP DevSecOps Platform Java Application"
 
 WORKDIR /app
 
-COPY target/dp-mywebapp-1.0.0-SNAPSHOT.jar app.jar
+COPY --chown=nonroot:nonroot target/dp-mywebapp-1.0.0-SNAPSHOT.jar /app/app.jar
 
-USER 10001
+USER nonroot:nonroot
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
