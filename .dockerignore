@@ -1,0 +1,7 @@
+.git
+.gitignore
+Jenkinsfile
+README.md
+
+target/*
+!target/dp-mywebapp-1.0.0-SNAPSHOT.jar

@@ -2,6 +2,7 @@ pipeline {
     agent { label 'build-agent' }
 
     stages {
+
         stage('Compile and Test') {
             steps {
                 sh 'mvn clean test'
@@ -32,14 +33,13 @@ pipeline {
             }
         }
 
-        stage('Verify Docker Environment') {
+        stage('Docker Build') {
             steps {
                 sh '''
-                    echo "=== Docker Environment ==="
-                    whoami
-                    id
-                    docker --version
-                    docker info --format 'Docker Engine: {{.ServerVersion}}'
+                    docker build \
+                        --tag dp-mywebapp:${BUILD_NUMBER} \
+                        --tag dp-mywebapp:latest \
+                        .
                 '''
             }
         }
