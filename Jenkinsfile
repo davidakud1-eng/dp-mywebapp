@@ -33,6 +33,14 @@ pipeline {
             }
         }
 
+        stage('SonarCloud Analysis') {
+            steps {
+                withSonarQubeEnv('DP-SonarCloud') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 sh '''
@@ -44,11 +52,15 @@ pipeline {
             }
         }
 
-        stage('SonarCloud Analysis') {
+        stage('Trivy Image Scan') {
             steps {
-                withSonarQubeEnv('DP-SonarCloud') {
-                    sh 'mvn sonar:sonar'
-                }
+                sh '''
+                    trivy image \
+                        --severity HIGH,CRITICAL \
+                        --exit-code 1 \
+                        --ignore-unfixed \
+                        dp-mywebapp:${BUILD_NUMBER}
+                '''
             }
         }
     }
