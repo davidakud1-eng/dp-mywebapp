@@ -40,6 +40,7 @@
 
         <!-- Maven Plugin Versions -->
         <maven.compiler.version>3.13.0</maven.compiler.version>
+        <maven.jar.version>3.4.2</maven.jar.version>
         <surefire.version>3.5.2</surefire.version>
         <jacoco.version>0.8.12</jacoco.version>
         <sonar.maven.version>5.2.0.4988</sonar.maven.version>
@@ -78,6 +79,23 @@
                 <version>${maven.compiler.version}</version>
                 <configuration>
                     <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+
+            <!-- ========================================================== -->
+            <!-- Executable JAR Packaging                                  -->
+            <!-- ========================================================== -->
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven.jar.version}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.dp.mywebapp.Application</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
 
