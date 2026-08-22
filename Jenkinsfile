@@ -32,6 +32,18 @@ pipeline {
             }
         }
 
+        stage('Verify Docker Environment') {
+            steps {
+                sh '''
+                    echo "=== Docker Environment ==="
+                    whoami
+                    id
+                    docker --version
+                    docker info --format 'Docker Engine: {{.ServerVersion}}'
+                '''
+            }
+        }
+
         stage('SonarCloud Analysis') {
             steps {
                 withSonarQubeEnv('DP-SonarCloud') {
