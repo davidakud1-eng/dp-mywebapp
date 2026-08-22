@@ -15,6 +15,18 @@ pipeline {
                 }
             }
         }
+
+        stage('Snyk Security Scan') {
+            steps {
+                snykSecurity(
+                    organisation: 'davidakud1-eng',
+                    projectName: 'dp-mywebapp',
+                    severity: 'high',
+                    snykInstallation: 'DP-Snyk',
+                    snykTokenId: 'snyk-token'
+                )
+            }
+        }
     }
 
     post {
