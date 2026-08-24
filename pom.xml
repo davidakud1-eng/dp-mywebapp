@@ -35,6 +35,10 @@
         <sonar.organization>davidakud1-eng</sonar.organization>
         <sonar.projectKey>davidakud1-eng_dp-mywebapp</sonar.projectKey>
 
+        <!-- JFrog Artifactory -->
+        <!-- Supplied by the Jenkins pipeline at build time -->
+        <artifactory.url>${env.ARTIFACTORY_URL}</artifactory.url>
+
         <!-- Dependency Versions -->
         <junit.version>5.11.4</junit.version>
 
@@ -61,6 +65,28 @@
         </dependency>
 
     </dependencies>
+
+    <!-- ================================================================== -->
+    <!-- Artifact Distribution - JFrog Artifactory                         -->
+    <!-- ================================================================== -->
+
+    <distributionManagement>
+
+        <!-- Stable release artifacts -->
+        <repository>
+            <id>dp-artifactory-release</id>
+            <name>DP Artifactory Releases</name>
+            <url>${artifactory.url}/libs-release-local</url>
+        </repository>
+
+        <!-- Development snapshot artifacts -->
+        <snapshotRepository>
+            <id>dp-artifactory-snapshot</id>
+            <name>DP Artifactory Snapshots</name>
+            <url>${artifactory.url}/libs-snapshot-local</url>
+        </snapshotRepository>
+
+    </distributionManagement>
 
     <!-- ================================================================== -->
     <!-- Build Configuration                                                -->
