@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         ARTIFACTORY_URL = 'http://10.0.43.83:8082/artifactory'
+        DOCKERHUB_REPOSITORY = 'kingdayve/dp-mywebapp'
     }
 
     stages {
@@ -110,6 +111,39 @@ EOF
                 '''
             }
         }
+
+        stage('Publish Image to Docker Hub') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKERHUB_TOKEN" | \
+                            docker login \
+                                --username "$DOCKERHUB_USERNAME" \
+                                --password-stdin
+
+                        docker tag \
+                            dp-mywebapp:${BUILD_NUMBER} \
+                            ${DOCKERHUB_REPOSITORY}:${BUILD_NUMBER}
+
+                        docker tag \
+                            dp-mywebapp:${BUILD_NUMBER} \
+                            ${DOCKERHUB_REPOSITORY}:latest
+
+                        docker push \
+                            ${DOCKERHUB_REPOSITORY}:${BUILD_NUMBER}
+
+                        docker push \
+                            ${DOCKERHUB_REPOSITORY}:latest
+                    '''
+                }
+            }
+        }
     }
 
     post {
@@ -123,7 +157,10 @@ EOF
                 ]]
             )
 
-            sh 'rm -f "$WORKSPACE/dp-maven-settings.xml"'
+            sh '''
+                rm -f "$WORKSPACE/dp-maven-settings.xml"
+                docker logout || true
+            '''
         }
     }
 }
