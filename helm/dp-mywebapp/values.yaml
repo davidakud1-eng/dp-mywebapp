@@ -1,0 +1,94 @@
+# ============================================================================
+# DP MyWebApp - Helm Values
+# ============================================================================
+
+# ============================================================================
+# Application Replicas
+# ============================================================================
+
+replicaCount: 3
+
+# ============================================================================
+# Container Image
+# Jenkins will override image.tag with BUILD_NUMBER during deployment.
+# ============================================================================
+
+image:
+  repository: kingdayve/dp-mywebapp
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# ============================================================================
+# Application
+# ============================================================================
+
+containerPort: 8080
+
+# ============================================================================
+# Kubernetes Service
+# ============================================================================
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# ============================================================================
+# Resource Management
+# ============================================================================
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# ============================================================================
+# Health Probes
+# ============================================================================
+
+readinessProbe:
+  path: /actuator/health
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+livenessProbe:
+  path: /actuator/health
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# ============================================================================
+# AWS ALB Ingress
+# ============================================================================
+
+ingress:
+  enabled: true
+  className: alb
+  scheme: internet-facing
+  targetType: ip
+  path: /
+  pathType: Prefix
+
+# ============================================================================
+# Horizontal Pod Autoscaler
+# ============================================================================
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+# ============================================================================
+# Pod Disruption Budget
+# ============================================================================
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2

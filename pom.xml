@@ -7,9 +7,12 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- ================================================================== -->
-    <!-- DP MyWebApp Project                                                -->
-    <!-- ================================================================== -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.5</version>
+        <relativePath/>
+    </parent>
 
     <groupId>com.dp</groupId>
     <artifactId>dp-mywebapp</artifactId>
@@ -21,65 +24,52 @@
         Java web application for the DP production-grade DevSecOps CI/CD platform.
     </description>
 
-    <!-- ================================================================== -->
-    <!-- Build Properties                                                   -->
-    <!-- ================================================================== -->
-
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <!-- Java -->
-        <maven.compiler.release>17</maven.compiler.release>
+        <java.version>21</java.version>
 
         <!-- SonarQube Cloud -->
         <sonar.organization>davidakud1-eng</sonar.organization>
         <sonar.projectKey>davidakud1-eng_dp-mywebapp</sonar.projectKey>
 
         <!-- JFrog Artifactory -->
-        <!-- Supplied by the Jenkins pipeline at build time -->
         <artifactory.url>${env.ARTIFACTORY_URL}</artifactory.url>
 
-        <!-- Dependency Versions -->
-        <junit.version>5.11.4</junit.version>
-
-        <!-- Maven Plugin Versions -->
-        <maven.compiler.version>3.13.0</maven.compiler.version>
-        <maven.jar.version>3.4.2</maven.jar.version>
-        <surefire.version>3.5.2</surefire.version>
+        <!-- Plugin Versions -->
         <jacoco.version>0.8.12</jacoco.version>
         <sonar.maven.version>5.2.0.4988</sonar.maven.version>
     </properties>
 
-    <!-- ================================================================== -->
-    <!-- Dependencies                                                       -->
-    <!-- ================================================================== -->
-
     <dependencies>
 
-        <!-- JUnit 5 -->
+        <!-- Spring Boot Web -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Kubernetes Health Endpoints -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
     </dependencies>
 
-    <!-- ================================================================== -->
-    <!-- Artifact Distribution - JFrog Artifactory                         -->
-    <!-- ================================================================== -->
-
     <distributionManagement>
 
-        <!-- Stable release artifacts -->
         <repository>
             <id>dp-artifactory-release</id>
             <name>DP Artifactory Releases</name>
             <url>${artifactory.url}/libs-release-local</url>
         </repository>
 
-        <!-- Development snapshot artifacts -->
         <snapshotRepository>
             <id>dp-artifactory-snapshot</id>
             <name>DP Artifactory Snapshots</name>
@@ -88,65 +78,22 @@
 
     </distributionManagement>
 
-    <!-- ================================================================== -->
-    <!-- Build Configuration                                                -->
-    <!-- ================================================================== -->
-
     <build>
         <plugins>
 
-            <!-- ========================================================== -->
-            <!-- Java Compilation                                          -->
-            <!-- ========================================================== -->
-
+            <!-- Executable Spring Boot JAR -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.version}</version>
-                <configuration>
-                    <release>${maven.compiler.release}</release>
-                </configuration>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- ========================================================== -->
-            <!-- Executable JAR Packaging                                  -->
-            <!-- ========================================================== -->
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven.jar.version}</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.dp.mywebapp.Application</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
-            <!-- ========================================================== -->
-            <!-- Unit Testing - JUnit 5                                    -->
-            <!-- ========================================================== -->
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire.version}</version>
-            </plugin>
-
-            <!-- ========================================================== -->
-            <!-- Code Coverage - JaCoCo                                    -->
-            <!-- ========================================================== -->
-
+            <!-- JaCoCo Coverage -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
 
                 <executions>
-
-                    <!-- Attach JaCoCo agent before tests execute -->
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
@@ -154,7 +101,6 @@
                         </goals>
                     </execution>
 
-                    <!-- Generate coverage report during verify -->
                     <execution>
                         <id>jacoco-report</id>
                         <phase>verify</phase>
@@ -162,14 +108,10 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
-
                 </executions>
             </plugin>
 
-            <!-- ========================================================== -->
-            <!-- Static Code Analysis - SonarQube Cloud                    -->
-            <!-- ========================================================== -->
-
+            <!-- SonarCloud -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>

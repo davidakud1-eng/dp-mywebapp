@@ -2,7 +2,7 @@
 # DP MyWebApp Runtime Image
 # ============================================================================
 
-FROM gcr.io/distroless/java17-debian13:nonroot
+FROM gcr.io/distroless/java21-debian12:nonroot
 
 LABEL org.opencontainers.image.title="DP MyWebApp"
 LABEL org.opencontainers.image.description="DP DevSecOps Platform Java Application"

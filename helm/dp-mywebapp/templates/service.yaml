@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: dp-mywebapp
+  labels:
+    app: dp-mywebapp
+
+spec:
+  type: {{ .Values.service.type }}
+
+  selector:
+    app: dp-mywebapp
+
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
