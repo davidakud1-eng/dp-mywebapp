@@ -9,7 +9,7 @@ pipeline {
     parameters {
         booleanParam(
             name: 'EKS_RUNTIME_ENABLED',
-            defaultValue: false,
+            defaultValue: true,
             description: 'Deploy DP MyWebApp to the EKS runtime'
         )
     }
