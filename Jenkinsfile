@@ -7,16 +7,36 @@ pipeline {
     }
 
     parameters {
+
+        // ================================================================
+        // EKS Runtime Control
+        //
+        // Disabled by default so normal CI builds can complete without
+        // requiring the ephemeral DP EKS runtime to exist.
+        //
+        // When enabled, the application is deployed to EKS from the
+        // Platform Ops Jenkins agent.
+        // ================================================================
+
         booleanParam(
             name: 'EKS_RUNTIME_ENABLED',
-            defaultValue: true,
-            description: 'Deploy DP MyWebApp to the EKS runtime'
+            defaultValue: false,
+            description: 'Deploy DP MyWebApp to the EKS runtime.'
         )
     }
 
     environment {
+
+        // ================================================================
+        // Artifact and Container Registry Configuration
+        // ================================================================
+
         ARTIFACTORY_URL = 'http://10.0.43.83:8082/artifactory'
         DOCKERHUB_REPOSITORY = 'kingdayve/dp-mywebapp'
+
+        // ================================================================
+        // EKS Deployment Configuration
+        // ================================================================
 
         EKS_CLUSTER_NAME = 'dp-eks-cluster'
         EKS_REGION = 'us-east-2'
@@ -26,11 +46,19 @@ pipeline {
 
     stages {
 
+        // ==================================================================
+        // Compile and Test
+        // ==================================================================
+
         stage('Compile and Test') {
             steps {
                 sh 'mvn clean test'
             }
         }
+
+        // ==================================================================
+        // Snyk Software Composition Analysis
+        // ==================================================================
 
         stage('Snyk SCA Scan') {
             steps {
@@ -44,11 +72,22 @@ pipeline {
             }
         }
 
+        // ==================================================================
+        // Package and Verify
+        //
+        // Maven verify also produces the JaCoCo coverage data used by the
+        // subsequent SonarCloud analysis.
+        // ==================================================================
+
         stage('Package and Verify') {
             steps {
                 sh 'mvn verify -DskipTests'
             }
         }
+
+        // ==================================================================
+        // Verify Executable JAR
+        // ==================================================================
 
         stage('Verify Executable JAR') {
             steps {
@@ -74,6 +113,10 @@ pipeline {
             }
         }
 
+        // ==================================================================
+        // SonarCloud Static Analysis
+        // ==================================================================
+
         stage('SonarCloud Analysis') {
             steps {
                 withSonarQubeEnv('DP-SonarCloud') {
@@ -81,6 +124,10 @@ pipeline {
                 }
             }
         }
+
+        // ==================================================================
+        // Publish Maven Artifact to Artifactory
+        // ==================================================================
 
         stage('Publish Artifact to Artifactory') {
             steps {
@@ -91,6 +138,9 @@ pipeline {
                     )
                 ]) {
                     sh '''
+                        set +x
+                        umask 077
+
                         cat > "$WORKSPACE/dp-maven-settings.xml" <<EOF_SETTINGS
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -123,6 +173,10 @@ EOF_SETTINGS
             }
         }
 
+        // ==================================================================
+        // Docker Build
+        // ==================================================================
+
         stage('Docker Build') {
             steps {
                 sh '''
@@ -133,6 +187,10 @@ EOF_SETTINGS
                 '''
             }
         }
+
+        // ==================================================================
+        // Trivy Container Image Scan
+        // ==================================================================
 
         stage('Trivy Image Scan') {
             steps {
@@ -148,6 +206,10 @@ EOF_SETTINGS
             }
         }
 
+        // ==================================================================
+        // Publish Container Image to Docker Hub
+        // ==================================================================
+
         stage('Publish Image to Docker Hub') {
             steps {
                 withCredentials([
@@ -158,6 +220,8 @@ EOF_SETTINGS
                     )
                 ]) {
                     sh '''
+                        set +x
+
                         echo "$DOCKERHUB_TOKEN" | \
                             docker login \
                                 --username "$DOCKERHUB_USERNAME" \
@@ -182,16 +246,22 @@ EOF_SETTINGS
         }
 
         // ==================================================================
-        // EKS Deployment
+        // Deploy to EKS
         //
-        // Runs on Platform Ops because that agent owns:
+        // This stage runs only when EKS_RUNTIME_ENABLED=true.
+        //
+        // The CI stages above execute on the permanent Build Agent.
+        //
+        // EKS deployment switches execution to Platform Ops because that
+        // Jenkins agent owns:
+        //
         //   - AWS IAM identity
-        //   - EKS access
+        //   - EKS cluster access
+        //   - AWS CLI
         //   - kubectl
         //   - Helm
         //
-        // Jenkins automatically checks out this repository into the
-        // Platform Ops workspace when entering this stage.
+        // No long-lived AWS access keys are required by this pipeline.
         // ==================================================================
 
         stage('Deploy to EKS') {
@@ -208,6 +278,9 @@ EOF_SETTINGS
 
             steps {
 
+                // The stage runs on a different Jenkins agent, so the
+                // repository is checked out into the Platform Ops workspace.
+
                 checkout scm
 
                 sh '''
@@ -218,17 +291,25 @@ EOF_SETTINGS
                     kubectl version --client
                     helm version
 
+                    echo
+                    echo "=== VERIFY AWS EXECUTION IDENTITY ==="
+                    aws sts get-caller-identity
+
+                    echo
                     echo "=== CONFIGURE EKS ACCESS ==="
                     aws eks update-kubeconfig \
                         --region "$EKS_REGION" \
                         --name "$EKS_CLUSTER_NAME"
 
+                    echo
                     echo "=== VERIFY EKS CONNECTIVITY ==="
-                    kubectl get nodes
+                    kubectl get nodes -o wide
 
+                    echo
                     echo "=== VALIDATE HELM CHART ==="
                     helm lint helm/dp-mywebapp
 
+                    echo
                     echo "=== DEPLOY DP MYWEBAPP ==="
                     helm upgrade --install \
                         "$HELM_RELEASE_NAME" \
@@ -240,12 +321,14 @@ EOF_SETTINGS
                         --wait \
                         --timeout 5m
 
+                    echo
                     echo "=== VERIFY DEPLOYMENT ==="
                     kubectl rollout status \
                         deployment/dp-mywebapp \
                         --namespace "$EKS_NAMESPACE" \
                         --timeout=5m
 
+                    echo
                     echo "=== DP APPLICATION RESOURCES ==="
                     kubectl get \
                         deployments,pods,services,ingress,hpa,pdb \
@@ -256,12 +339,21 @@ EOF_SETTINGS
     }
 
     post {
+
+        // ==================================================================
+        // Cleanup
+        // ==================================================================
+
         always {
             sh '''
                 rm -f "$WORKSPACE/dp-maven-settings.xml"
                 docker logout || true
             '''
         }
+
+        // ==================================================================
+        // Pipeline Result
+        // ==================================================================
 
         success {
             echo 'DP MyWebApp pipeline completed successfully.'
